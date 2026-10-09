@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sat-platform
+    runtime: docker
+    plan: starter          # disk faqat pullik rejada mavjud
+    healthCheckPath: /api/tests
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASS
+        sync: false        # Render panelida o'zingiz kiritasiz

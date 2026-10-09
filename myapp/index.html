@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT Test - O'quvchi</title>
+    <script src="https://www.desmos.com/api/v1.8/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f4f4f5; color: #333; }
+        
+        /* Login Modal */
+        #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; }
+        .login-content { background: #fff; width: 400px; padding: 30px; border-radius: 12px; text-align: center; }
+        .login-content input, .login-content select { width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        .btn-start { background: #3b82f6; color: white; border: none; padding: 12px 100%; width: 100%; border-radius: 6px; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
+        .btn-start:hover { background: #2563eb; }
+
+        /* Asosiy Layout CSS (Oldingidek saqlab qolindi) */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; border-bottom: 1px solid #ccc; background: #fff; z-index: 10; }
+        .header-center { flex: 1; text-align: center; }
+        .timer { font-size: 1.5rem; font-weight: bold; }
+        .tool-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 0.85rem; }
+        main { flex: 1; display: flex; overflow: hidden; background-color: #fff; }
+        #calc-panel { width: 45%; border-right: 2px solid #ddd; display: none; flex-direction: column; }
+        #calc-header { background: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; font-weight: bold; }
+        .close-btn { cursor: pointer; }
+        #calculator { flex: 1; }
+        #question-panel { flex: 1; padding: 40px; display: flex; justify-content: center; overflow-y: auto; }
+        .question-container { max-width: 750px; width: 100%; }
+        .question-header { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .question-number { background: #111; color: #fff; padding: 4px 12px; border-radius: 4px; font-weight: bold; }
+        .mark-review-btn { display: flex; gap: 8px; cursor: pointer; padding: 5px 10px; border-radius: 5px; font-weight: 500; }
+        .mark-review-btn.active { color: #d97706; background: #fef3c7; }
+        .question-text, .options { font-family: Georgia, serif; }
+        .question-text { font-size: 1.2rem; margin-bottom: 30px; line-height: 1.6; }
+        .options { display: flex; flex-direction: column; gap: 15px; }
+        .option-wrapper { display: flex; align-items: center; gap: 15px; }
+        .option-content { flex: 1; display: flex; align-items: center; border: 1px solid #888; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1.15rem; }
+        .option-content.selected { background-color: #dbeafe; border-color: #3b82f6; }
+        .option-content.crossed { opacity: 0.4; text-decoration: line-through; background-color: #f3f4f6; }
+        .option-letter { border: 1px solid #555; border-radius: 50%; min-width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; margin-right: 20px; font-family: sans-serif; font-weight:bold; }
+        .option-content.selected .option-letter { background-color: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .eliminator-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #888; display: flex; justify-content: center; align-items: center; cursor: pointer; font-family: sans-serif; font-weight: bold; position: relative;}
+        .eliminator-btn.active::after { content: ''; position: absolute; width: 80%; height: 2px; background: #333; transform: rotate(-45deg); }
+        footer { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-top: 1px solid #ccc; background: #fff; }
+        .btn { padding: 10px 25px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        .btn-blue { background-color: #3b82f6; color: #fff; }
+        .btn-dark { background-color: #1f2937; color: #fff; }
+        
+        #app-content { display: none; flex-direction: column; height: 100%; }
+    </style>
+</head>
+<body>
+
+    <!-- Login Ekran -->
+    <div id="login-modal">
+        <div class="login-content">
+            <h2>Platformaga Kirish</h2>
+            <input type="text" id="student-name" placeholder="Ism va Familiyangizni kiriting" required>
+            <select id="test-selector">
+                <option value="">Testni tanlang...</option>
+            </select>
+            <button class="btn-start" onclick="startTest()">Testni Boshlash</button>
+        </div>
+    </div>
+
+    <!-- Asosiy Dastur (Yashiringan) -->
+    <div id="app-content">
+        <header>
+            <div style="flex:1;"><strong>Math Section</strong></div>
+            <div class="header-center"><div class="timer" id="timer">00:00</div></div>
+            <div style="flex:1; display:flex; justify-content:flex-end;">
+                <button class="tool-btn" onclick="toggleCalculator()"><span style="font-size:1.4rem;">🖩</span>Calculator</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="calc-panel">
+                <div id="calc-header"><span>🖩 Desmos</span><span class="close-btn" onclick="toggleCalculator()">✖</span></div>
+                <div id="calculator"></div>
+            </div>
+
+            <div id="question-panel">
+                <div class="question-container">
+                    <div class="question-header">
+                        <span class="question-number" id="q-num-display">1</span>
+                        <div class="mark-review-btn" id="mark-btn" onclick="toggleMark()">⚑ Mark for Review</div>
+                    </div>
+                    <div class="question-body">
+                        <p class="question-text" id="q-text">Savol yuklanmoqda...</p>
+                        <div class="options" id="q-options"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div style="font-weight: bold; font-size: 1.2rem;">Ustoz/O'quvchi MVP</div>
+            <div>
+                <button class="btn btn-dark" onclick="submitTest()">Submit section →</button>
+            </div>
+            <div>
+                <button class="btn btn-blue" id="btn-back" onclick="changeQuestion(-1)">Back</button>
+                <button class="btn btn-blue" id="btn-next" onclick="changeQuestion(1)">Next</button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let testData = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {}; 
+        let markedQuestions = new Set();
+        let crossedOut = {};
+        
+        let studentInfo = { name: '', testId: null, duration: 0, startTime: null };
+        let timerInterval;
+
+        // 1. Dastur yonganda testlar ro'yxatini API'dan tortib olish
+        window.onload = async () => {
+            const res = await fetch('/api/tests');
+            const tests = await res.json();
+            const selector = document.getElementById('test-selector');
+            tests.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.dataset.duration = t.duration;
+                opt.innerText = t.title;
+                selector.appendChild(opt);
+            });
+        };
+
+        // 2. O'quvchi testni boshlashi
+        async function startTest() {
+            const nameInput = document.getElementById('student-name').value;
+            const testSelector = document.getElementById('test-selector');
+            const testId = testSelector.value;
+            
+            if (!nameInput || !testId) {
+                alert("Iltimos, ismingizni yozing va testni tanlang!"); return;
+            }
+
+            studentInfo.name = nameInput;
+            studentInfo.testId = testId;
+            studentInfo.duration = parseInt(testSelector.options[testSelector.selectedIndex].dataset.duration);
+            studentInfo.startTime = new Date();
+
+            // Savollarni serverdan olish
+            const res = await fetch(`/api/questions/${testId}`);
+            testData = await res.json();
+
+            if (testData.length === 0) {
+                alert("Bu testda hali savollar yo'q. Ustoz savol qo'shishi kerak."); return;
+            }
+
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('app-content').style.display = 'flex';
+            
+            startTimer(studentInfo.duration * 60);
+            renderQuestion();
+        }
+
+        // --- Asosiy Logika ---
+        var calculator = Desmos.GraphingCalculator(document.getElementById('calculator'), { expressions: true, settingsMenu: false });
+        function toggleCalculator() {
+            const panel = document.getElementById('calc-panel');
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'flex' : 'none';
+            setTimeout(() => calculator.resize(), 50);
+        }
+
+        function renderQuestion() {
+            const q = testData[currentQuestionIndex];
+            document.getElementById('q-num-display').innerText = currentQuestionIndex + 1;
+            document.getElementById('q-text').innerText = q.text;
+            
+            const markBtn = document.getElementById('mark-btn');
+            if (markedQuestions.has(currentQuestionIndex)) markBtn.classList.add('active');
+            else markBtn.classList.remove('active');
+
+            const opts = document.getElementById('q-options');
+            opts.innerHTML = ''; 
+            const letters = ['A', 'B', 'C', 'D'];
+            if (!crossedOut[currentQuestionIndex]) crossedOut[currentQuestionIndex] = [];
+
+            q.options.forEach((optText, index) => {
+                const wrapper = document.createElement('div'); wrapper.className = 'option-wrapper';
+                const optDiv = document.createElement('div'); optDiv.className = 'option-content';
+                
+                const isSelected = userAnswers[currentQuestionIndex] === index;
+                const isCrossed = crossedOut[currentQuestionIndex].includes(index);
+                if (isSelected && !isCrossed) optDiv.classList.add('selected');
+                if (isCrossed) optDiv.classList.add('crossed');
+
+                optDiv.onclick = () => {
+                    if (!crossedOut[currentQuestionIndex].includes(index)) {
+                        userAnswers[currentQuestionIndex] = index;
+                        renderQuestion();
+                    }
+                };
+                optDiv.innerHTML = `<div class="option-letter">${letters[index]}</div><div>${optText}</div>`;
+                
+                const crossBtn = document.createElement('div'); crossBtn.className = 'eliminator-btn';
+                if (isCrossed) crossBtn.classList.add('active');
+                crossBtn.innerText = letters[index];
+                
+                crossBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (isCrossed) crossedOut[currentQuestionIndex] = crossedOut[currentQuestionIndex].filter(i => i !== index);
+                    else {
+                        crossedOut[currentQuestionIndex].push(index);
+                        if (userAnswers[currentQuestionIndex] === index) delete userAnswers[currentQuestionIndex];
+                    }
+                    renderQuestion();
+                };
+
+                wrapper.appendChild(optDiv); wrapper.appendChild(crossBtn); opts.appendChild(wrapper);
+            });
+
+            document.getElementById('btn-back').disabled = currentQuestionIndex === 0;
+            document.getElementById('btn-next').disabled = currentQuestionIndex === testData.length - 1;
+        }
+
+        function toggleMark() {
+            if (markedQuestions.has(currentQuestionIndex)) markedQuestions.delete(currentQuestionIndex);
+            else markedQuestions.add(currentQuestionIndex);
+            renderQuestion();
+        }
+
+        function changeQuestion(step) {
+            const n = currentQuestionIndex + step;
+            if (n >= 0 && n < testData.length) { currentQuestionIndex = n; renderQuestion(); }
+        }
+
+        function startTimer(seconds) {
+            timerInterval = setInterval(() => {
+                if(seconds > 0) seconds--;
+                else { clearInterval(timerInterval); submitTest(); }
+                document.getElementById('timer').innerText = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // 3. Natijani hisoblash va Backend'ga jo'natish
+        async function submitTest() {
+            if(!confirm("Testni yakunlab, natijani yubormoqchimisiz?")) return;
+            
+            clearInterval(timerInterval);
+            let score = 0;
+            
+            testData.forEach((q, index) => {
+                if (userAnswers[index] === q.correct) score++;
+            });
+
+            const timeSpentMs = new Date() - studentInfo.startTime;
+            const timeSpentMin = Math.round(timeSpentMs / 60000);
+
+            const payload = {
+                student_name: studentInfo.name,
+                test_id: studentInfo.testId,
+                score: score,
+                total_q: testData.length,
+                time_spent_min: timeSpentMin
+            };
+
+            await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            document.body.innerHTML = `<div style="display:flex; height:100vh; justify-content:center; align-items:center; flex-direction:column;">
+                <h1 style="color:#10b981;">Test muvaffaqiyatli topshirildi!</h1>
+                <h2>To'g'ri javoblar: ${score} / ${testData.length}</h2>
+            </div>`;
+        }
+    </script>
+</body>
+</html>
+

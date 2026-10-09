@@ -1,0 +1,13 @@
+{
+	auto_https off
+	admin off
+}
+
+:{$PORT} {
+	handle /ustoz* {
+		reverse_proxy 127.0.0.1:8501
+	}
+	handle {
+		reverse_proxy 127.0.0.1:5000
+	}
+}
